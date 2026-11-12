@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Verificação de Segurança</title>
+  <meta name="description" content="Verificando se você é humano. Aguarde um momento." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>" />
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --checkbox-border: #cbd5e1;
+      --checkbox-hover: #94a3b8;
+      --brand-blue: #2563eb;
+      --brand-green: #10b981;
+      --divider: #f1f5f9;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #090d16;
+        --card-bg: #131b2a;
+        --card-border: #1e293b;
+        --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --checkbox-border: #334155;
+        --checkbox-hover: #475569;
+        --brand-blue: #3b82f6;
+        --brand-green: #34d399;
+        --divider: #1e293b;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+    }
+
+    .shield-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--brand-blue);
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .card {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      position: relative;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--checkbox-hover);
+    }
+
+    /* Top animated progress bar */
+    .progress-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--brand-blue), var(--brand-green));
+      transition: width 1.1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .widget-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 22px 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .widget-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .checkbox {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--checkbox-border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .widget-row:hover .checkbox:not(.checked):not(.loading) {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid var(--brand-blue);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Checkmark */
+    .checkmark {
+      display: none;
+      width: 20px;
+      height: 20px;
+      stroke: var(--brand-green);
+      stroke-width: 3;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 40;
+      stroke-dashoffset: 40;
+    }
+
+    @keyframes drawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Checkbox dynamic states */
+    .checkbox.loading {
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+    .checkbox.loading .spinner {
+      display: block;
+    }
+
+    .checkbox.checked {
+      border-color: var(--brand-green);
+      background: rgba(16, 185, 129, 0.1);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+    }
+    .checkbox.checked .checkmark {
+      display: block;
+      animation: drawCheck 0.35s ease-out forwards;
+    }
+
+    .widget-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .widget-label {
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .widget-sublabel {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .widget-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .widget-brand svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .widget-brand span {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .card-footer {
+      border-top: 1px solid var(--divider);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.015);
+    }
+
+    .secure-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--brand-green);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-main);
+      text-decoration: underline;
+    }
+
+    .footer-links .sep {
+      opacity: 0.5;
+    }
+
+    .bottom-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .ray-id {
+      font-family: monospace;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="shield-badge">
+        <!-- Shield icon -->
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+      </div>
+      <h1>Verificação de Segurança</h1>
+      <p>Confirme que você é humano para prosseguir com segurança.</p>
+    </div>
+
+    <div class="card" id="cardContainer">
+      <div class="progress-bar" id="progressBar"></div>
+
+      <div class="widget-row" id="verifyRow">
+        <div class="widget-left">
+          <div class="checkbox" id="checkboxBox">
+            <!-- Spinner indicator -->
+            <div class="spinner"></div>
+
+            <!-- Checkmark SVG -->
+            <svg class="checkmark" viewBox="0 0 24 24">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+
+          <div class="widget-text">
+            <span class="widget-label" id="statusLabel">Não sou um robô</span>
+            <span class="widget-sublabel" id="subLabel">Clique para verificar</span>
+          </div>
+        </div>
+
+        <div class="widget-brand">
+          <!-- Turnstile / Recaptcha Badge Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" color="#2563eb">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <span>Cloudflare</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="secure-status">
+          <span class="status-dot"></span>
+          <span>Conexão criptografada (SSL)</span>
+        </div>
+        <div class="footer-links">
+          <a href="#">Privacidade</a>
+          <span class="sep">•</span>
+          <a href="#">Termos</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-info">
+      <span>DDoS Protection & Ray Verification by Cloudflare</span>
+      <span class="ray-id" id="rayId">Ray ID: carregando...</span>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONFIGURAÇÃO DO DESTINO
+    // ==========================================
+    const CONFIG = {
+      // Link de redirecionamento após a verificação
+      targetUrl: 'https://www.jornaldeangola.ao/',
+      // Tempo da animação de verificação (em milissegundos)
+      verificationTimeMs: 700,
+      // Tempo de exibição da confirmação antes de redirecionar
+      redirectDelayMs: 400,
+      // Manter parâmetros da URL (ex: ?utm_source=...&src=...)
+      preserveQueryParams: true
+    };
+
+    // Gera um Ray ID realista
+    const randomHex = Math.random().toString(16).substring(2, 18);
+    document.getElementById('rayId').textContent = 'Ray ID: ' + randomHex + ' • IP Seguro';
+
+    const verifyRow = document.getElementById('verifyRow');
+    const checkboxBox = document.getElementById('checkboxBox');
+    const statusLabel = document.getElementById('statusLabel');
+    const subLabel = document.getElementById('subLabel');
+    const progressBar = document.getElementById('progressBar');
+
+    let isVerifying = false;
+
+    verifyRow.addEventListener('click', function () {
+      if (isVerifying || checkboxBox.classList.contains('checked')) return;
+      isVerifying = true;
+
+      // Estado 1: Carregando
+      checkboxBox.classList.add('loading');
+      statusLabel.textContent = 'Verificando...';
+      subLabel.textContent = 'Aguarde um instante';
+      progressBar.style.width = '60%';
+
+      // Estado 2: Sucesso após simular checagem de integridade
+      setTimeout(function () {
+        checkboxBox.classList.remove('loading');
+        checkboxBox.classList.add('checked');
+        statusLabel.textContent = 'Verificado com sucesso';
+        subLabel.textContent = 'Redirecionando...';
+        progressBar.style.width = '100%';
+
+        // Redirecionamento
+        setTimeout(function () {
+          let destination = CONFIG.targetUrl;
+
+          // Repassa parâmetros da URL se existirem
+          if (CONFIG.preserveQueryParams && window.location.search) {
+            const hasQuery = destination.includes('?');
+            const queryParams = window.location.search.substring(1);
+            destination += (hasQuery ? '&' : '?') + queryParams;
+          }
+
+          window.location.href = destination;
+        }, CONFIG.redirectDelayMs);
+      }, CONFIG.verificationTimeMs);
+    });
+  </script>
+</body>
+</html>
